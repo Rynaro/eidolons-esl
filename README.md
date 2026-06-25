@@ -1,5 +1,7 @@
 # ESL — Eidolons Spec Lifecycle
 
+[![conformance](https://github.com/Rynaro/eidolons-esl/actions/workflows/conformance.yml/badge.svg)](https://github.com/Rynaro/eidolons-esl/actions/workflows/conformance.yml)
+
 ESL is the **spec-lifecycle coordination grammar** for Eidolons changes: a
 right-sizable state machine, a mandatory mechanical right-sizing gate, and a
 living-spec / drift contract. It is a plain-text standard plus a standalone
@@ -90,6 +92,15 @@ Exit codes: `0` conformant (or warnings-only in `--mode warn`); `1` usage error;
 `3` a hard violation in `--mode block`. See
 [`conformance/README.md`](conformance/README.md).
 
+## Docs
+
+Comprehensive guidance for adopters and contributors:
+
+- **[`docs/rationale.md`](docs/rationale.md)** — Why ESL exists: the research evidence (T1/T2 CONFIRMED failure modes, +1.7% SWE-bench gain from SDD workflow), the three net-new mechanisms (state machine + right-sizing gate + drift-check), and why we chose to reuse Eidolons instead of building a second framework.
+- **[`docs/relationship-to-ecl-eiis.md`](docs/relationship-to-ecl-eiis.md)** — How ESL composes with sibling contracts (ECL = wire format, EIIS = install contract, ESL = lifecycle grammar). The three composition points and versioning independence model.
+- **[`docs/adoption.md`](docs/adoption.md)** — How to use ESL in a consumer project: the per-change folder layout, the right-sizing gate workflow, tier-specific lifecycle paths (trivial/lite/full), conformance checking, maker/checker enforcement, and practical scenarios.
+- **[`docs/roadmap.md`](docs/roadmap.md)** — The next wave (v1.1+): optional `eidolons spec` CLI verb, per-Eidolon adoptions, native baseline eval (GAP-B closure), EARS helpers, Junction dispatch demo, and rejected candidates with rationales.
+
 ## What this repo is NOT
 
 - It is **not** an Eidolon. It is not installed into consumer projects.
@@ -108,6 +119,12 @@ ECL   (Rynaro/eidolons-ecl)   — the wire-format / hand-off contract.
 ESL   (this repo)             — the spec-lifecycle contract.
                                  Composes with ECL + EIIS; replaces neither.
 ```
+
+See [`docs/relationship-to-ecl-eiis.md`](docs/relationship-to-ecl-eiis.md) for the deep dive on composition, versioning independence, and drift tracking.
+
+## Roadmap
+
+See [`docs/roadmap.md`](docs/roadmap.md) for v1.1+ candidates (optional `eidolons spec` CLI verb, per-Eidolon adoptions, native baseline eval, EARS helpers, Junction demo) and rejected alternatives with rationales.
 
 ## Contributing
 

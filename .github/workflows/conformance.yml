@@ -1,0 +1,163 @@
+# Run the ESL mechanical gates (G1–G7) on every push and PR.
+#
+# This workflow makes the eidolons-esl repo self-defending: the same gates
+# the spec (.spectra/sdd-tooling-2026-06/spec.md §11) sets for the build are
+# enforced as CI, fail-closed, on a matrix that includes macos-latest so the
+# bash-3.2 constraint is proven against a real bash 3.2 (the macOS system
+# shell) — mirroring how the nexus `cli-tests` job catches bash-3.2 regressions.
+name: conformance
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gates:
+    name: ESL gates (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      # jq and shellcheck are preinstalled on GitHub's ubuntu and macos
+      # runners; install only if absent so the workflow is robust to image
+      # changes. apt on ubuntu, brew on macos.
+      - name: Ensure jq + shellcheck present
+        shell: bash
+        run: |
+          install_pkg() {
+            pkg="$1"
+            if command -v "$pkg" >/dev/null 2>&1; then
+              echo "$pkg: already present ($("$pkg" --version 2>&1 | head -1))"
+              return 0
+            fi
+            echo "$pkg: not found, installing"
+            case "${{ matrix.os }}" in
+              ubuntu-*) sudo apt-get update -qq && sudo apt-get install -y "$pkg" ;;
+              macos-*)  brew install "$pkg" ;;
+              *)        echo "unknown OS, cannot install $pkg" >&2; exit 1 ;;
+            esac
+          }
+          install_pkg jq
+          install_pkg shellcheck
+
+      # On macos-latest the system /bin/bash is genuinely 3.2 — run the checker
+      # through it on the macos leg so CI proves real bash-3.2 compatibility,
+      # not just "works on whatever bash 5 the runner ships".
+      - name: Record the bash used to drive the checker
+        id: pickbash
+        shell: bash
+        run: |
+          case "${{ matrix.os }}" in
+            macos-*) checker_bash=/bin/bash ;;
+            *)       checker_bash="$(command -v bash)" ;;
+          esac
+          echo "checker_bash=$checker_bash" >> "$GITHUB_OUTPUT"
+          echo "Driving the ESL checker with: $checker_bash"
+          "$checker_bash" --version | head -1
+
+      # G1 — the vendorable change manifest schema is itself valid JSON.
+      - name: G1 — schema is valid JSON
+        shell: bash
+        run: |
+          jq empty schema/change.v1.json
+          echo "G1 ok: schema/change.v1.json is valid JSON"
+
+      # G6 — the checker is bash 3.2 compatible: shellcheck clean at error
+      # severity AND no bash-4-only constructs. shellcheck -S error skips
+      # warning-level findings, so the grep gate is not redundant — it catches
+      # the bash-4 constructs shellcheck would only warn about.
+      - name: G6 — checker is bash 3.2 (shellcheck + grep gate)
+        shell: bash
+        run: |
+          shellcheck -S error conformance/esl-conformance.sh
+          echo "G6 ok: shellcheck -S error clean"
+          if grep -nE 'declare -A|\$\{[A-Za-z_][A-Za-z0-9_]*,,|\$\{[A-Za-z_][A-Za-z0-9_]*\^\^|readarray|mapfile|&>>' conformance/esl-conformance.sh; then
+            echo "G6 FAIL: bash-4-only construct found in conformance/esl-conformance.sh" >&2
+            exit 1
+          fi
+          echo "G6 ok: no bash-4-only constructs"
+
+      # G7 (offline half) — the checker makes no network calls. A grep gate
+      # for curl/wget/nc keeps the checker hermetic; a network dependency would
+      # break determinism and the no-network P0.
+      - name: G7a — checker is offline (no curl/wget/nc)
+        shell: bash
+        run: |
+          if grep -nE '\b(curl|wget|nc)\b' conformance/esl-conformance.sh; then
+            echo "G7a FAIL: network tool referenced in conformance/esl-conformance.sh" >&2
+            exit 1
+          fi
+          echo "G7a ok: no curl/wget/nc in the checker"
+
+      # G2 — every worked example conforms in block mode (exit 0).
+      - name: G2 — every example conforms (block, exit 0)
+        shell: bash
+        env:
+          CHECKER_BASH: ${{ steps.pickbash.outputs.checker_bash }}
+        run: |
+          rc=0
+          for ex in trivial-typo-fix lite-add-flag full-new-subsystem; do
+            "$CHECKER_BASH" conformance/esl-conformance.sh "examples/$ex/" --mode block
+            ec=$?
+            if [ "$ec" -ne 0 ]; then
+              echo "G2 FAIL: examples/$ex/ should conform (block) but exited $ec (expected 0)" >&2
+              rc=1
+            else
+              echo "G2 ok: examples/$ex/ exits 0"
+            fi
+          done
+          exit "$rc"
+
+      # G3/G4/G5 — the RED gates. Each violating fixture MUST block (exit 3) in
+      # block mode; the job FAILS if the checker does NOT block. This proves the
+      # enforcement still fires (not a vacuous re-run): the CI is RED unless the
+      # checker actively rejects each violation.
+      - name: G3/G4/G5 — violating fixtures are blocked (exit 3)
+        shell: bash
+        env:
+          CHECKER_BASH: ${{ steps.pickbash.outputs.checker_bash }}
+        run: |
+          rc=0
+          for fx in maker-equals-checker archive-no-drift full-missing-spec lite-missing-spec; do
+            "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/$fx/" --mode block
+            ec=$?
+            if [ "$ec" -ne 3 ]; then
+              echo "RED-GATE FAIL: conformance/tests/$fx/ should BLOCK (exit 3) but exited $ec" >&2
+              rc=1
+            else
+              echo "ok: conformance/tests/$fx/ correctly blocked (exit 3)"
+            fi
+          done
+          # The non-violating trivial fixture MUST pass (exit 0).
+          "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/trivial-no-spec/" --mode block
+          ec=$?
+          if [ "$ec" -ne 0 ]; then
+            echo "RED-GATE FAIL: conformance/tests/trivial-no-spec/ should pass (exit 0) but exited $ec" >&2
+            rc=1
+          else
+            echo "ok: conformance/tests/trivial-no-spec/ correctly passes (exit 0)"
+          fi
+          exit "$rc"
+
+      # G7 (determinism half) — two --json runs on one example produce
+      # byte-identical stdout. Non-determinism (timestamps, unsorted output)
+      # would make the JSON summary unstable for downstream consumers.
+      - name: G7b — checker --json is deterministic (byte-identical)
+        shell: bash
+        env:
+          CHECKER_BASH: ${{ steps.pickbash.outputs.checker_bash }}
+        run: |
+          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run1.json
+          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run2.json
+          if ! cmp -s run1.json run2.json; then
+            echo "G7b FAIL: --json stdout is not byte-identical across runs" >&2
+            diff run1.json run2.json >&2 || true
+            rm -f run1.json run2.json
+            exit 1
+          fi
+          rm -f run1.json run2.json
+          echo "G7b ok: --json stdout is byte-identical across two runs"
