@@ -168,6 +168,11 @@ error (bad args, missing folder); `3` a hard violation in `--mode block`. `2` is
 RESERVED. All human-readable findings go to stderr; `--json` machine summary goes
 to stdout only.
 
+> **NOTE (governance, non-normative).** `--mode warn` is the advisory default; a
+> project MAY escalate to `--mode block` on a mechanical project-aggregate of the
+> §4.2 signals. That escalation is a nexus-side policy recorded in
+> `eidolons.mcp.lock`, NOT here — ESL stays opt-in (§1.4). See `docs/escalation.md`.
+
 ## §9 Versioning
 
 9.1 ESL versions at the document level (SemVer). The `ESL_VERSION` stamp declares

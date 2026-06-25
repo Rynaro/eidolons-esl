@@ -6,6 +6,20 @@ Versioning: [SemVer 2.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+
+- **`docs/escalation.md`** — formalizes the opt-in → forced enforcement policy
+  (FORGE Decision 3): `--mode warn` is the advisory default; a project escalates
+  to `--mode block` when any project-aggregate of the §4.2 right-sizing signals
+  trips a mechanical threshold (`change_count ≥ N`, `repo_loc ≥ L`, or
+  `full_ratio ≥ R`; seed defaults N=10 / L=50_000 / R=0.4, tunable knobs). The
+  flip is recorded **nexus-side** in `eidolons.mcp.lock`, NOT in `esl-1.0.md`
+  (ESL stays opt-in per §1.4); tonberry ships the assessment + the lever while
+  the auto-flip *recording* is a deferred nexus follow-up.
+- **`spec/esl-1.0.md` §8.3** — a non-normative NOTE pointing to
+  `docs/escalation.md`. No change to the opt-in P0, the conformance checks, the
+  schema, or the exit-code contract — escalation is governance, not a C-check.
+
 ## [1.0.0] — 2026-06-24
 
 ### Added
