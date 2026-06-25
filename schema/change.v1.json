@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Rynaro/eidolons-esl/blob/v1.0.0/schema/change.v1.json",
+  "title": "ESL change manifest v1",
+  "description": "Vendorable JSON Schema for the per-change `change.json` manifest defined by ESL v1.0. The `status` and `tier` enums are ESL-OWNED vocabulary (declared here). All other referenced shapes (the SPECTRA spec artifact via `spec_ref`, ECL performatives via the envelope sidecar, CRYSTALIUM layers) are REFERENCED by version elsewhere and MUST NOT be re-declared here. The maker != checker rule cannot be expressed portably in JSON Schema and is enforced by conformance/esl-conformance.sh, not by this schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "esl_version",
+    "change_id",
+    "status",
+    "tier",
+    "maker",
+    "checker",
+    "acceptance_checks",
+    "spec_ref"
+  ],
+  "properties": {
+    "esl_version": {
+      "type": "string",
+      "description": "The ESL version this manifest targets, matching the repo ESL_VERSION stamp (MAJOR.MINOR).",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "change_id": {
+      "type": "string",
+      "description": "Stable identifier for the change; also the per-change folder name under .spectra/changes/<change_id>/.",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "minLength": 1
+    },
+    "status": {
+      "description": "ESL-OWNED lifecycle state vocabulary (ESL v1.0 §3).",
+      "enum": [
+        "proposed",
+        "deliberated",
+        "in_progress",
+        "verified",
+        "archived"
+      ]
+    },
+    "tier": {
+      "description": "ESL-OWNED right-sizing tier (ESL v1.0 §4).",
+      "enum": [
+        "trivial",
+        "lite",
+        "full"
+      ]
+    },
+    "maker": {
+      "type": "string",
+      "description": "Eidolon identity that produced the implementation (e.g. vivi, kupo). Non-empty. maker != checker is a conformance-checker rule, not a schema rule.",
+      "minLength": 1
+    },
+    "checker": {
+      "type": "string",
+      "description": "Eidolon identity that verifies the change (e.g. kupo-verifier, vigil). Non-empty and distinct from maker (enforced by the conformance checker).",
+      "minLength": 1
+    },
+    "acceptance_checks": {
+      "type": "array",
+      "description": "GIVEN/WHEN/THEN identifiers that point INTO spec_ref plus a verify-method reference. ESL does NOT re-declare SPECTRA's GIVEN/WHEN/THEN format; it carries an id list that references it.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Acceptance-criterion id defined in the SPECTRA spec at spec_ref (e.g. AC-A1).",
+            "minLength": 1
+          },
+          "verify_method": {
+            "type": "string",
+            "description": "Reference to how this criterion is verified (e.g. a test path or skill id). A reference, never an inlined verifier."
+          }
+        }
+      }
+    },
+    "spec_ref": {
+      "description": "REFERENCE to the SPECTRA-owned spec artifact (relative path to spec.md or spec.yaml), or null for trivial no-spec changes. NEVER an embedded SPECTRA schema.",
+      "type": ["string", "null"]
+    },
+    "supersedes": {
+      "type": ["string", "null"],
+      "description": "OPTIONAL. The prior change_id this change revises (the on-disk bi-temporal diff edge). Mirrors CRYSTALIUM supersedes_id; ESL does not re-declare the memory record."
+    },
+    "superseded_by": {
+      "type": ["string", "null"],
+      "description": "OPTIONAL. A later change_id that supersedes this one."
+    },
+    "created_at": {
+      "type": "string",
+      "description": "OPTIONAL. ISO-8601 timestamp the change was proposed."
+    },
+    "drift_checked": {
+      "type": "boolean",
+      "description": "OPTIONAL until archive. MUST be true before status may become `archived` (ESL v1.0 §6; enforced by the conformance checker)."
+    },
+    "archive_path": {
+      "type": ["string", "null"],
+      "description": "OPTIONAL. Set on archive to the snapshot location archive/<date>-<change_id>/."
+    }
+  }
+}

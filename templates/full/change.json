@@ -1,0 +1,12 @@
+{
+  "esl_version": "1.0",
+  "change_id": "REPLACE-with-kebab-change-id",
+  "status": "proposed",
+  "tier": "full",
+  "maker": "vivi",
+  "checker": "REPLACE-distinct-checker-identity",
+  "acceptance_checks": [
+    { "id": "AC-1", "verify_method": "REPLACE-test-or-skill-ref" }
+  ],
+  "spec_ref": "spec.md"
+}

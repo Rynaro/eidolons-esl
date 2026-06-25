@@ -1,0 +1,15 @@
+# Editor / OS noise
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Scratch
+/tmp-*
+*.bak
+
+# bats output
+.bats-tmp/
+
+# NOTE: examples/*/*.envelope.json and conformance/tests/ fixtures are
+# committed reference artifacts — they are NOT regenerated and are tracked.
