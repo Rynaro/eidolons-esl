@@ -101,8 +101,8 @@ jobs:
         run: |
           rc=0
           for ex in trivial-typo-fix lite-add-flag full-new-subsystem; do
-            "$CHECKER_BASH" conformance/esl-conformance.sh "examples/$ex/" --mode block
-            ec=$?
+            ec=0
+            "$CHECKER_BASH" conformance/esl-conformance.sh "examples/$ex/" --mode block || ec=$?
             if [ "$ec" -ne 0 ]; then
               echo "G2 FAIL: examples/$ex/ should conform (block) but exited $ec (expected 0)" >&2
               rc=1
@@ -123,8 +123,8 @@ jobs:
         run: |
           rc=0
           for fx in maker-equals-checker archive-no-drift full-missing-spec lite-missing-spec; do
-            "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/$fx/" --mode block
-            ec=$?
+            ec=0
+            "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/$fx/" --mode block || ec=$?
             if [ "$ec" -ne 3 ]; then
               echo "RED-GATE FAIL: conformance/tests/$fx/ should BLOCK (exit 3) but exited $ec" >&2
               rc=1
@@ -133,8 +133,8 @@ jobs:
             fi
           done
           # The non-violating trivial fixture MUST pass (exit 0).
-          "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/trivial-no-spec/" --mode block
-          ec=$?
+          ec=0
+          "$CHECKER_BASH" conformance/esl-conformance.sh "conformance/tests/trivial-no-spec/" --mode block || ec=$?
           if [ "$ec" -ne 0 ]; then
             echo "RED-GATE FAIL: conformance/tests/trivial-no-spec/ should pass (exit 0) but exited $ec" >&2
             rc=1
@@ -151,8 +151,8 @@ jobs:
         env:
           CHECKER_BASH: ${{ steps.pickbash.outputs.checker_bash }}
         run: |
-          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run1.json
-          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run2.json
+          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run1.json || true
+          "$CHECKER_BASH" conformance/esl-conformance.sh examples/lite-add-flag/ --mode block --json 2>/dev/null > run2.json || true
           if ! cmp -s run1.json run2.json; then
             echo "G7b FAIL: --json stdout is not byte-identical across runs" >&2
             diff run1.json run2.json >&2 || true
