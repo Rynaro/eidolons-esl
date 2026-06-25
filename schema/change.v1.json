@@ -122,6 +122,10 @@
     "archive_path": {
       "type": ["string", "null"],
       "description": "OPTIONAL. Set on archive to the snapshot location archive/<date>-<change_id>/."
+    },
+    "has_code": {
+      "type": "boolean",
+      "description": "OPTIONAL lifecycle hint declared at propose, read by transition (ESL v1.0 §3.2). true iff the change contains code: a code change MUST pass through the code states (in_progress); a no-code change MAY skip them. Declared once at propose so `transition` need not re-pass it each time; an explicit per-transition flag, if given, overrides this manifest value (back-compat). Not a gate the conformance checker enforces — it is a transition input, not a C1–C6 MUST check."
     }
   }
 }

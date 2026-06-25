@@ -43,7 +43,7 @@ per-change folder (OpenSpec-style), described in §9.
 defined by `schema/change.v1.json` and are REFERENCED here, not re-declared:
 `esl_version`, `change_id`, `status`, `tier`, `maker`, `checker`,
 `acceptance_checks[]`, `spec_ref` (REQUIRED); `supersedes`, `superseded_by`,
-`created_at`, `drift_checked`, `archive_path` (OPTIONAL).
+`created_at`, `drift_checked`, `archive_path`, `has_code` (OPTIONAL).
 
 2.3 `spec_ref` MUST be a relative path to the SPECTRA-owned `spec.{md,yaml}` or
 `null`. It MUST NOT inline the SPECTRA schema.
@@ -81,7 +81,12 @@ a mandatory linear gate.
 
 3.2 The only mandatory spine is `proposed` → (`in_progress` if any code) →
 `verified` → `archived`. `deliberated` is conditional on a real trade-off; the
-code-states are conditional on there being code.
+code-states are conditional on there being code. The optional `has_code` boolean
+on the manifest is a lifecycle hint declared at `proposed` and read by
+`transition`: a no-code change (`has_code` false/absent) MAY skip the code states;
+a code change (`has_code` true) MUST pass through `in_progress`. An explicit
+per-transition `has_code` input, if supplied, overrides the manifest value
+(back-compat). It is a transition input, not a conformance MUST check.
 
 3.3 `status` MUST be one of the five values above. A change MUST NOT enter
 `archived` before satisfying §6.4.
@@ -203,8 +208,14 @@ mirroring `ECL_VERSION` / `EIIS_VERSION`.
 9.2 A change folder lives under `.spectra/changes/<change_id>/`. It adds a
 `changes/` sibling alongside SPECTRA's `plans/` / `state/` / `logs/`; it MUST NOT
 introduce a new top-level consumer directory (preserving SPECTRA's
-"everything under `.spectra/`" rule). On `archived`, the folder content is
-snapshotted under `archive/<date>-<change_id>/`.
+"everything under `.spectra/`" rule). On `archived`, the change folder is
+**MOVED** to `.spectra/changes/archive/<date>-<change_id>/` (a move, not a copy:
+the active `.spectra/changes/<change_id>/` no longer exists afterward), with
+`status` set to `archived` and `archive_path` recording the new location. A
+project-scope count of changes (e.g. the `change_count` / `full_ratio`
+escalation signals of §4.2) MUST include BOTH active changes
+(`.spectra/changes/*`) AND archived ones (`.spectra/changes/archive/*`), so
+archiving never drops the escalation signal.
 
 9.3 A version bump of a **referenced** schema (SPECTRA spec profile, ECL
 envelope, CRYSTALIUM layer shape) is a `[REVERSAL-CONDITION]`, not a silent

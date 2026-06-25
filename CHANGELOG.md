@@ -8,6 +8,24 @@ Versioning: [SemVer 2.0](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **`has_code` lifecycle hint (v1.1-additive, backward-compatible).** New OPTIONAL
+  boolean `has_code` property on `schema/change.v1.json` (the schema is
+  `additionalProperties:false`, so the field MUST be declared to be carried). It is
+  a hint declared at `propose` and read by `transition` (ESL §3.2): a no-code change
+  may skip the code states, a code change must pass through `in_progress`; an
+  explicit per-transition `has_code` input overrides the manifest value. `spec/esl-1.0.md`
+  §2.2 lists it among the OPTIONAL fields and §3.2 documents the propose-time
+  declaration + transition-read + override semantics. It is a `transition` input,
+  NOT a conformance MUST check — the C1–C6 checks and exit-code contract are
+  unchanged.
+- **§9.2 archive-is-a-MOVE + project-scope counts include archived (clarification).**
+  `spec/esl-1.0.md` §9.2 now states that on `archived` the change folder is MOVED
+  (not copied) to `.spectra/changes/archive/<date>-<change_id>/` — the active
+  `.spectra/changes/<change_id>/` no longer exists afterward — and that a
+  project-scope count of changes (the §4.2 `change_count` / `full_ratio`
+  escalation signals) MUST include BOTH active (`.spectra/changes/*`) AND archived
+  (`.spectra/changes/archive/*`) changes, so archiving never drops the escalation
+  signal. Spec/governance clarification only; no conformance-check change.
 - **Optional EARS acceptance form + advisory C7 (v1.1-additive, backward-compatible).**
   An `acceptance_checks[]` item MAY now be EITHER a plain string OR a structured
   object; a structured object MAY adopt the **EARS** form (Easy Approach to
