@@ -52,6 +52,19 @@ defined by `schema/change.v1.json` and are REFERENCED here, not re-declared:
 `spec_ref` plus an OPTIONAL `verify_method` reference. ESL MUST NOT re-define
 SPECTRA's GIVEN/WHEN/THEN format.
 
+2.5 **(v1.1-additive) Optional EARS acceptance form.** An `acceptance_checks[]`
+item MAY be EITHER a plain string (a free-form criterion or a bare id — the
+minimal form) OR a structured object. A structured object MAY adopt the optional
+**EARS** form (Easy Approach to Requirements Syntax: `WHEN [event] THE SYSTEM
+SHALL [action]`) by carrying `given` / `when` / `then` alongside `id` and
+`verify_method`. The EARS fields are advisory polish, NOT a gate: an item is "in
+the EARS form" iff it declares at least one of `given` / `when` / `then`, and is
+advisory-linted by **C7** (§8.2, SHOULD-level — never blocks). The plain-string
+and the minimal `{id, verify_method}` forms stay 100% valid and produce **no**
+C7 finding; this clause is additive and backward-compatible. ESL still MUST NOT
+re-declare SPECTRA's spec schema — the EARS fields are a thin reference shape on
+the change manifest, not an embedded SPECTRA artifact.
+
 ## §3 Lifecycle state machine
 
 3.1 A change moves through five states. Every transition **after `proposed` is
@@ -155,13 +168,21 @@ FIELD, not a performative.
 compatible, deterministic (no LLM, no network), warn/block modes mirroring ECL.
 Its input is a change-folder path.
 
-8.2 It runs six mechanical checks: (1) `change.json` is valid JSON; (2) `status`
-and `tier` are legal enum values; (3) tier-appropriate artifacts are present
-(`trivial` → no spec required; `lite` → one-page `spec.md` with non-empty
-`acceptance_checks`; `full` → `spec.{md,yaml}`); (4) maker ≠ checker when
-`status` ∈ {`verified`, `archived`}; (5) `drift_checked == true` before
-`archived`; (6) any ECL envelope sidecar is well-formed JSON with a
-`performative` in the closed ten-set.
+8.2 It runs six **MUST** checks plus one **SHOULD** advisory check: (1)
+`change.json` is valid JSON; (2) `status` and `tier` are legal enum values; (3)
+tier-appropriate artifacts are present (`trivial` → no spec required; `lite` →
+one-page `spec.md` with non-empty `acceptance_checks`; `full` → `spec.{md,yaml}`);
+(4) maker ≠ checker when `status` ∈ {`verified`, `archived`}; (5) `drift_checked
+== true` before `archived`; (6) any ECL envelope sidecar is well-formed JSON with
+a `performative` in the closed ten-set; **(7, SHOULD — v1.1-additive) EARS
+acceptance lint:** for any `acceptance_checks[]` item in the EARS form (§2.5 — an
+object declaring at least one of `given`/`when`/`then`), warn if it is missing or
+empties any of `given` / `when` / `then` / `verify_method`. C7 is **advisory**:
+it MUST NOT change the exit code (a C7-only failure → exit 0 even in `--mode
+block`; only the MUST checks C1–C6 block). Plain-string and minimal `{id,
+verify_method}` items produce NO C7 finding. C7 emits in the `--json` results
+array with the same shape as C1–C6 (`{id:"C7", level:"SHOULD", status:"ok|fail",
+name, reason?}`).
 
 8.3 **Exit codes:** `0` conformant (or warnings only in `--mode warn`); `1` usage
 error (bad args, missing folder); `3` a hard violation in `--mode block`. `2` is

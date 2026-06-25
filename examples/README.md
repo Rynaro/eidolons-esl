@@ -1,12 +1,13 @@
 # Examples
 
-One worked change per right-sizing tier. Each passes
-`conformance/esl-conformance.sh <example>/ --mode block` with exit 0.
+One worked change per right-sizing tier, plus the optional EARS acceptance form.
+Each passes `conformance/esl-conformance.sh <example>/ --mode block` with exit 0.
 
 | Example | Tier | Demonstrates |
 |---|---|---|
 | `trivial-typo-fix/` | trivial | no-spec bypass route; `DELEGATE` → Kupo; maker (kupo) ≠ checker (vigil) |
-| `lite-add-flag/` | lite | one-page `spec.md`; lite spine `0→2→3→4`; `PROPOSE` + `INFORM(verify_pass)`; maker (vivi) ≠ checker (kupo-verifier) |
+| `lite-add-flag/` | lite | one-page `spec.md`; lite spine `0→2→3→4`; `PROPOSE` + `INFORM(verify_pass)`; maker (vivi) ≠ checker (kupo-verifier); minimal `{id, verify_method}` acceptance form (no C7) |
+| `lite-ears-complete/` | lite | the OPTIONAL **EARS** acceptance form `{id, given, when, then, verify_method}`; the advisory C7 lint passes (`ok`); backward-compatible alternative to `lite-add-flag/`'s minimal form |
 | `full-new-subsystem/` | full | full lifecycle `0→1→2→3→4`; `PROPOSE`/`CRITIQUE`/`INFORM`; `drift_checked=true` before archive; archive snapshot + Semantic promotion (documented) |
 
 ## Conventions

@@ -32,7 +32,7 @@ bash conformance/esl-conformance.sh .spectra/changes/my-change/ --mode block --j
 
 `2` is RESERVED.
 
-## The six mechanical checks
+## The mechanical checks (six MUST + one SHOULD advisory)
 
 | ID | Level | Asserts |
 |---|---|---|
@@ -43,6 +43,12 @@ bash conformance/esl-conformance.sh .spectra/changes/my-change/ --mode block --j
 | C4 | MUST | maker ≠ checker (and verify-envelope `from.eidolon` ≠ maker) when `status` ∈ {verified, archived} |
 | C5 | MUST | `drift_checked == true` before `status == archived` |
 | C6 | MUST | any `*.envelope.json` sidecar is well-formed JSON with `performative` in the ECL closed-10 set |
+| C7 | SHOULD | **(advisory, never blocks)** any `acceptance_checks[]` item in the EARS form (an object declaring ≥1 of `given`/`when`/`then`) carries all of `given`/`when`/`then`/`verify_method` |
+
+**C7 is advisory.** A C7-only failure does NOT change the exit code — it stays
+`0` even under `--mode block` (only the MUST checks C1–C6 block). Plain-string
+and minimal `{id, verify_method}` `acceptance_checks` items produce **no** C7
+finding; the optional EARS form (ESL §2.5) is opt-in polish.
 
 The ECL performative set is REFERENCED from a vendored constant in the script,
 pointing at `schemas/performative.v1.json` in `Rynaro/eidolons-ecl`. ESL does not
@@ -60,5 +66,8 @@ Under `tests/`:
 | `full-missing-spec/` | block | 3 | C3 — full tier requires `spec.{md,yaml}` |
 | `lite-missing-spec/` | block | 3 | C3 — lite tier requires one-page `spec.md` |
 | `trivial-no-spec/` | block | 0 | C3 — trivial without a spec is NOT a violation |
+| `ears-complete/` | block | 0 | C7 — EARS-complete item → C7 ok (advisory) |
+| `ears-missing-field/` | block | 0 | C7 — EARS item missing `then` → C7 **fail** but exit 0 (advisory; only C1–C6 block) |
 
-The three conformant tier examples under `../examples/` exit 0 in block mode.
+The conformant tier examples under `../examples/` (including the EARS-form
+`lite-ears-complete/`) exit 0 in block mode.

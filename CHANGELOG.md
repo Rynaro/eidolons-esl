@@ -8,6 +8,26 @@ Versioning: [SemVer 2.0](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- **Optional EARS acceptance form + advisory C7 (v1.1-additive, backward-compatible).**
+  An `acceptance_checks[]` item MAY now be EITHER a plain string OR a structured
+  object; a structured object MAY adopt the **EARS** form (Easy Approach to
+  Requirements Syntax: `{id, given, when, then, verify_method}`). New SHOULD-level
+  check **C7** in `conformance/esl-conformance.sh` lints EARS-form items (those
+  declaring ≥1 of `given`/`when`/`then`) for completeness, warning if any of
+  `given`/`when`/`then`/`verify_method` is missing or empty. **C7 is advisory: it
+  NEVER changes the exit code** — a C7-only failure stays exit 0 even under
+  `--mode block` (only the MUST checks C1–C6 block). Plain-string and minimal
+  `{id, verify_method}` items produce **no** C7 finding; all existing
+  examples/fixtures stay valid and still exit 0 in block mode.
+  - `schema/change.v1.json` — `acceptance_checks[].items` is now
+    `oneOf: [string, {object with id + optional given/when/then/verify_method}]`.
+    Additive; the plain-string and minimal-object forms remain valid.
+  - `spec/esl-1.0.md` — new §2.5 (optional EARS form) and §8.2 check (7) (C7,
+    SHOULD-level). Framed as a v1.1-additive, backward-compatible enhancement; the
+    opt-in P0 and the exit-code contract are unchanged.
+  - Fixtures — `conformance/tests/{ears-complete,ears-missing-field}/` (the
+    advisory proof: `ears-missing-field` shows C7 `fail` in `--json` yet exit 0 in
+    block mode) and `examples/lite-ears-complete/` (a worked EARS-form change).
 - **`docs/escalation.md`** — formalizes the opt-in → forced enforcement policy
   (FORGE Decision 3): `--mode warn` is the advisory default; a project escalates
   to `--mode block` when any project-aggregate of the §4.2 right-sizing signals

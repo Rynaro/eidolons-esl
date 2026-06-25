@@ -57,22 +57,46 @@
     },
     "acceptance_checks": {
       "type": "array",
-      "description": "GIVEN/WHEN/THEN identifiers that point INTO spec_ref plus a verify-method reference. ESL does NOT re-declare SPECTRA's GIVEN/WHEN/THEN format; it carries an id list that references it.",
+      "description": "Acceptance criteria. An item MAY be EITHER a plain string (a free-form criterion or a bare id that points INTO spec_ref) OR a structured object. The structured object MAY carry the optional EARS form (Easy Approach to Requirements Syntax: given/when/then + verify_method). ESL does NOT re-declare SPECTRA's GIVEN/WHEN/THEN format; it carries references INTO it. Backward-compatible: the plain-string and the minimal {id, verify_method} object forms both stay valid.",
       "items": {
-        "type": "object",
-        "additionalProperties": false,
-        "required": ["id"],
-        "properties": {
-          "id": {
+        "oneOf": [
+          {
             "type": "string",
-            "description": "Acceptance-criterion id defined in the SPECTRA spec at spec_ref (e.g. AC-A1).",
-            "minLength": 1
+            "description": "Plain-string acceptance criterion (legacy/minimal form). Produces no EARS lint (C7) finding."
           },
-          "verify_method": {
-            "type": "string",
-            "description": "Reference to how this criterion is verified (e.g. a test path or skill id). A reference, never an inlined verifier."
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id"],
+            "description": "Structured acceptance criterion. With given/when/then/verify_method it is the optional EARS form, advisory-linted by C7 in the conformance checker (SHOULD-level; never blocks).",
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Acceptance-criterion id defined in the SPECTRA spec at spec_ref (e.g. AC-A1).",
+                "minLength": 1
+              },
+              "given": {
+                "type": "string",
+                "description": "EARS precondition / state. Part of the optional EARS form; advisory-only.",
+                "minLength": 1
+              },
+              "when": {
+                "type": "string",
+                "description": "EARS triggering event. Part of the optional EARS form; advisory-only.",
+                "minLength": 1
+              },
+              "then": {
+                "type": "string",
+                "description": "EARS expected system response (THE SYSTEM SHALL ...). Part of the optional EARS form; advisory-only.",
+                "minLength": 1
+              },
+              "verify_method": {
+                "type": "string",
+                "description": "Reference to how this criterion is verified (e.g. a test path or skill id). A reference, never an inlined verifier."
+              }
+            }
           }
-        }
+        ]
       }
     },
     "spec_ref": {
