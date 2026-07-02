@@ -43,7 +43,7 @@ ESL   (Rynaro/eidolons-esl)   — the spec-lifecycle contract.
 ### At runtime (ECL + ESL)
 
 1. **ECL envelopes are sidecars.** When an Eidolon emits work (a change proposal, a verification result, an archival decision), it wraps the payload in a JSON envelope with:
-   - Closed 10-performative performative (PROPOSE, CRITIQUE, DECIDE, DELEGATE, ACKNOWLEDGE, INFORM, ESCALATE, REFUSE, RESUME, ACCEPT — see ECL spec)
+   - Closed 10-performative set (REQUEST, INFORM, PROPOSE, CRITIQUE, DECIDE, DELEGATE, ACKNOWLEDGE, ESCALATE, RESUME, REFUSE — see ECL spec §2.1; note there is NO ACCEPT performative, per ESL spec §7.3 acceptance is expressed as ACKNOWLEDGE)
    - `from.eidolon` identity (e.g., `spectra`, `vivi`, `kupo`)
    - SHA-256 integrity over the payload
    - Trace context (call stack)
@@ -68,7 +68,7 @@ ESL   (Rynaro/eidolons-esl)   — the spec-lifecycle contract.
 Each contract repo has a root file declaring its version:
 
 - **EIIS:** `EIIS_VERSION` (e.g., `1.4`)
-- **ECL:** `ECL_VERSION` (e.g., `1.0`)
+- **ECL:** `ECL_VERSION` (e.g., `2.0`)
 - **ESL:** `ESL_VERSION` (e.g., `1.0`)
 
 Mirrors across the sibling repos — no new concept, same pattern applied three times. The nexus reads these to detect which contract versions are in scope.
@@ -80,7 +80,7 @@ An Eidolon's `install.manifest.json` MAY include an `ecl_version_emitted` field:
 ```json
 {
   "eiis_version": "1.4",
-  "ecl_version_emitted": "1.0",
+  "ecl_version_emitted": "2.0",
   "name": "spectra",
   "version": "4.9.1"
 }
@@ -100,9 +100,9 @@ Each contract versions independently via SemVer. A breaking change in one does N
 
 | EIIS | ECL | ESL | Status |
 |---|---|---|---|
-| 1.1 | 1.0 | 1.0 | Recommended (current) |
-| 1.0 | 1.0 | 1.0 | Supported (v1.0 Eidolons MAY emit ECL) |
-| 1.2+ | 1.x | 1.x | Forward-compatible (additive) |
+| 1.4 | 2.0 | 1.0 | Recommended (current) |
+| 1.0–1.3 | 1.x | 1.0 | Supported (v1.0 Eidolons MAY emit ECL; ESL's normative references pin ECL v1.0, whose performative set is unchanged in v2.0) |
+| 1.5+ | 2.x | 1.x | Forward-compatible (additive) |
 
 **Reversal conditions (if a sibling changes, this contract may need re-versioning):**
 - If SPECTRA changes the schema of `spec.{md,yaml}`, ESL's references (not re-declarations) may need a version bump.

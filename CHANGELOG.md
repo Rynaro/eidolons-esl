@@ -6,6 +6,17 @@ Versioning: [SemVer 2.0](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`docs/relationship-to-ecl-eiis.md` listed a phantom `ACCEPT` performative.**
+  Its enumeration of the ECL closed-10 set named `ACCEPT` (and omitted
+  `REQUEST`), contradicting both ECL §2.1 and ESL's own §7.3 ("There is NO
+  ACCEPT performative — acceptance is expressed as ACKNOWLEDGE"). The doc now
+  lists the correct ten members and cross-references §7.3.
+- Same doc's recommended-pairing table and examples claimed ECL 1.0 / EIIS 1.1
+  as current; refreshed for ECL 2.0 / EIIS 1.4. ESL's normative references
+  still pin ECL v1.0 by design — the performative set is unchanged in v2.0.
+
 ### Added
 
 - **`has_code` lifecycle hint (v1.1-additive, backward-compatible).** New OPTIONAL
